@@ -16,17 +16,38 @@ const userSchema = new mongoose.Schema ({
     email: String,
     password: String
 });
-const User = mongoose.model('User', userSchema);
 
-// var secret = "My Secret";
-// userSchema.plugin(encrypt, {secret: secret, encryptedFields: ['password']});
+
+var secret = "MySecret";
+userSchema.plugin(encrypt, {secret: secret, encryptedFields: ['password']});
+
+const User = mongoose.model('User', userSchema);
 
 app.get('/', function (req, res) {
     res.render('home');
 });
 
-app.get('/login', function (req, res) {
+//chained routes
+app.route('/login')
+.get(function (req, res) {
     res.render('login');
+})
+.post(function (req, res) {
+    const userName = req.body.username;
+    const passWord = req.body.password;
+    User.findOne({email : userName}, function (err, foundUser) {
+        if (err){
+            console.log(err);
+        } else {
+            if(foundUser.password === passWord){
+                res.render('secrets');
+            } 
+            else {
+                res.status(401).send('Invalid username or password.');
+
+            }
+        }
+    });
 });
 // chained route handlers
 app.route('/register')
